@@ -4,8 +4,6 @@ import { Table, Icon } from 'semantic-ui-react'
 function Home({ path, dir }) {
   return (
     <div className="ui top container">
-      <h1 className="ui header">Wonder Mirror</h1>
-
     <Table>
     <Table.Header>
       <Table.Row>
@@ -13,14 +11,13 @@ function Home({ path, dir }) {
       </Table.Row>
     </Table.Header>
 
-      <Table.Body>
+    <Table.Body>
         <Table.Row>
               <Table.Cell collapsing>
                 <Icon name='folder open outline' />
-                <a href={"/" + path.split('/').slice(1).join('/')}>..</a>
+                <a href={"/" + path.split('/').slice(0, path.split('/').length-1).join('/')}>..</a>
               </Table.Cell>
-              
-            </Table.Row>
+        </Table.Row>
         {
           dir.map(r=> 
             <>
@@ -30,7 +27,7 @@ function Home({ path, dir }) {
                 r.isDir ? ( 
                   <>
                   <Icon name='folder outline' />
-                  <a href={ path + '/' + r.name}>{r.name}</a>
+                  <a href={r.name}>{r.name}</a>
                   </>
                 ) : (
                   <>
@@ -40,6 +37,13 @@ function Home({ path, dir }) {
                 )
               }
             </Table.Cell>
+            <Table.Cell>
+              {r.isDir ? '' : FileSize(r.size)}
+            </Table.Cell>
+
+            <Table.Cell textAlign="right">
+            {r.isDir ? '' : <a href={r.name} download><Icon className="cloud download"/></a>}
+            </Table.Cell>
             
           </Table.Row>
             </>
@@ -47,25 +51,53 @@ function Home({ path, dir }) {
         }
       </Table.Body>
     </Table>
-      {
-        dir.map(r=> JSON.stringify(r))
-      }
     </div>
   )
 }
 
 Home.getInitialProps = (ctx) => {
+  try {
   const fs = require('fs')
   const path = require('path')
 
 
-  const paths = ctx.query.dir
-  const pathText = paths.join('/')
-  paths.unshift('./files')
+  const pathText = ctx.query.dir.join('/')
+  paths = pathText.split('/')
+  paths.unshift('./public/files')
 
-  console.log()
   const dir = fs.readdirSync(path.join(...paths))
 
-  return { dir: dir.map(el=> { return { isDir: fs.lstatSync(path.join(...paths, el)).isDirectory(), name: el } } ).sort((x,y) => (x.isDir===y.isDir) ? 0 : x.isDir? -1 : 1), path: pathText }
+  return { dir: dir.map(el=> { 
+    const stat = fs.lstatSync(path.join(...paths, el))
+    return { isDir: stat.isDirectory(), name: el, size: stat.size }
+  } ).sort((x,y) => (x.isDir===y.isDir) ? 0 : x.isDir? -1 : 1) , path: pathText}
+  } catch(e){
+    const paths = ctx.query.dir
+    const pathText = paths.join('/')
+    return { dir: [],  path: pathText }
+  }
+
 }
 export default Home
+
+function FileSize(bytes, si=false, dp=1) {
+  const thresh = si ? 1000 : 1024;
+
+  if (Math.abs(bytes) < thresh) {
+    return bytes + ' B';
+  }
+
+  const units = si 
+    ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'] 
+    : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+  let u = -1;
+  const r = 10**dp;
+
+  do {
+    bytes /= thresh;
+    ++u;
+  } while (Math.round(Math.abs(bytes) * r) / r >= thresh && u < units.length - 1);
+
+
+  return bytes.toFixed(dp) + ' ' + units[u];
+}
