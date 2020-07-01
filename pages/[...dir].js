@@ -62,7 +62,7 @@ Home.getInitialProps = (ctx) => {
 
 
   const pathText = ctx.query.dir.join('/')
-  paths = pathText.split('/')
+  const paths = pathText.split('/')
   paths.unshift('./public/files')
 
   const dir = fs.readdirSync(path.join(...paths))
@@ -72,6 +72,7 @@ Home.getInitialProps = (ctx) => {
     return { isDir: stat.isDirectory(), name: el, size: stat.size }
   } ).sort((x,y) => (x.isDir===y.isDir) ? 0 : x.isDir? -1 : 1) , path: pathText}
   } catch(e){
+    console.log(e)
     const paths = ctx.query.dir
     const pathText = paths.join('/')
     return { dir: [],  path: pathText }
