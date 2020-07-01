@@ -27,7 +27,7 @@ function Home({ path, dir }) {
                 r.isDir ? ( 
                   <>
                   <Icon name='folder outline' />
-                  <a href={r.name}>{r.name}</a>
+                  <a href={`/${path}/${r.name}`}>{r.name}</a>
                   </>
                 ) : (
                   <>
