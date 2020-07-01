@@ -42,7 +42,7 @@ function Home({ path, dir }) {
             </Table.Cell>
 
             <Table.Cell textAlign="right">
-            {r.isDir ? '' : <a href={r.name} download><Icon className="cloud download"/></a>}
+            {r.isDir ? '' : <a href={`/files/${path}/${r.name}`}download><Icon className="cloud download"/></a>}
             </Table.Cell>
             
           </Table.Row>
